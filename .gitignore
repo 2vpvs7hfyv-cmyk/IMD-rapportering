@@ -1,0 +1,14 @@
+# Excel / VBA temporary files
+~$*
+*.tmp
+*.bak
+*.xlsm~
+*.xlam~
+*.xltm~
+*.xltx~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
