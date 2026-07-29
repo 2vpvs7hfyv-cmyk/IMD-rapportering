@@ -63,7 +63,7 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     If VarType(selectedFile) = vbBoolean Or pickFailed Then
         On Error Resume Next
         Dim asPath As String
-        asPath = MacScript("POSIX path of (choose file of type {\"xlsx\",\"xlsm\",\"xls\"} with prompt \"Välj Excel-fil att importera\")")
+        asPath = MacScript("POSIX path of (choose file with prompt ""Välj Excel-fil att importera"")")
         If Err.Number <> 0 Then
             Err.Clear
         Else
