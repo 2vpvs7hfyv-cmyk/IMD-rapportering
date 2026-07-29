@@ -123,14 +123,6 @@ Private Function GetSafeSheetName(ByVal proposedName As String) As String
         safeName = "ImportedSheet"
     End If
 
-    If SheetExists(safeName) Then
-        index = 1
-        Do While SheetExists(safeName & "_" & CStr(index))
-            index = index + 1
-        Loop
-        safeName = safeName & "_" & CStr(index)
-    End If
-
     GetSafeSheetName = safeName
 End Function
 
@@ -151,7 +143,13 @@ Private Function GetFileNameWithoutExtension(ByVal fullPath As String) As String
 End Function
 
 Private Function SheetExists(ByVal sheetName As String) As Boolean
-    On Error Resume Next
-    SheetExists = Not ThisWorkbook.Worksheets(sheetName) Is Nothing
-    On Error GoTo 0
+    Dim ws As Worksheet
+
+    SheetExists = False
+    For Each ws In ThisWorkbook.Worksheets
+        If ws.Name = sheetName Then
+            SheetExists = True
+            Exit Function
+        End If
+    Next ws
 End Function
