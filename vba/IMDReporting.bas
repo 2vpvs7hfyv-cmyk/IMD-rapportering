@@ -76,11 +76,15 @@ Public Sub ImportSelectedWorkbookToNewSheet()
 
     sourceSheet.UsedRange.Copy Destination:=newSheet.Range("A1")
 
-    Call VerifyConsumptionZero(newSheet)
+    If AllValidationsPass(newSheet) Then
+        CreateExportSheet newSheet
+        sourceWorkbook.Close SaveChanges:=False
+        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Exportbladet har skapats.", vbInformation
+    Else
+        sourceWorkbook.Close SaveChanges:=False
+        MsgBox "Importen genomfördes, men exporten stoppades eftersom verifieringarna inte gick igenom.", vbExclamation
+    End If
 
-    sourceWorkbook.Close SaveChanges:=False
-
-    MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName, vbInformation
     Exit Sub
 
 ImportError:

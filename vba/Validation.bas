@@ -1,15 +1,16 @@
 Option Explicit
 
-Public Sub VerifyConsumptionZero(ByVal targetSheet As Worksheet)
+Public Function VerifyConsumptionZero(ByVal targetSheet As Worksheet) As Boolean
     Dim lastRow As Long
     Dim checkRange As Range
     Dim cell As Range
     Dim badCount As Long
 
-    If targetSheet Is Nothing Then Exit Sub
+    VerifyConsumptionZero = True
+    If targetSheet Is Nothing Then Exit Function
 
     lastRow = targetSheet.Cells(targetSheet.Rows.Count, "G").End(xlUp).Row
-    If lastRow < 2 Then Exit Sub
+    If lastRow < 2 Then Exit Function
 
     Set checkRange = targetSheet.Range("G2:G" & lastRow)
     badCount = 0
@@ -33,5 +34,16 @@ Public Sub VerifyConsumptionZero(ByVal targetSheet As Worksheet)
 
     If badCount > 0 Then
         MsgBox "Verifiering: Hittade " & badCount & " rader med 0 i förbrukning i kolumn G. Dessa har markerats.", vbExclamation, "Verifiering - Förbrukning"
+        VerifyConsumptionZero = False
     End If
-End Sub
+End Function
+
+Public Function AllValidationsPass(ByVal targetSheet As Worksheet) As Boolean
+    If targetSheet Is Nothing Then Exit Function
+
+    AllValidationsPass = False
+
+    If Not VerifyConsumptionZero(targetSheet) Then Exit Function
+
+    AllValidationsPass = True
+End Function
