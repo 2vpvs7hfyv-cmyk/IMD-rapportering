@@ -31,8 +31,8 @@ Public Sub CreateExportSheet(ByVal sourceSheet As Worksheet)
 
     exportTimestamp = Format(Now, "yyyy-mm-dd hh:nn:ss")
     With exportSheet.Range("B1")
-        .Value = exportTimestamp
         .NumberFormat = "@"
+        .Value = "'" & exportTimestamp
     End With
 
     sourceLastRow = sourceSheet.Cells(sourceSheet.Rows.Count, "A").End(xlUp).Row
@@ -47,7 +47,7 @@ Public Sub CreateExportSheet(ByVal sourceSheet As Worksheet)
 
         exportValueD = "213424" & ExtractLast4Digits(sourceA)
         exportValueF = FormatDecimalText(ParseDecimalValue(sourceD) - ParseDecimalValue(sourceG))
-        exportValueG = FormatDecimalText(ParseDecimalValue(sourceF))
+        exportValueG = FormatDateToText(sourceF)
         exportValueH = FormatDecimalText(ParseDecimalValue(sourceD))
         exportValueI = FormatDecimalText(ParseDecimalValue(sourceG))
 
