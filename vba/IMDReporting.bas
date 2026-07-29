@@ -63,7 +63,7 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     If VarType(selectedFile) = vbBoolean Or pickFailed Then
         On Error Resume Next
         Dim asPath As String
-        asPath = MacScript("POSIX path of (choose file with prompt ""Välj Excel-fil att importera"")")
+        asPath = MacScript("POSIX path of (choose file with prompt ""Välj Excel-fil att importera""")")
         If Err.Number <> 0 Then
             Err.Clear
         Else
@@ -72,6 +72,14 @@ Public Sub ImportSelectedWorkbookToNewSheet()
             End If
         End If
         On Error GoTo 0
+    End If
+
+    ' If still no file selected, ask the user to paste the full POSIX path
+    If VarType(selectedFile) = vbBoolean Or Trim(CStr(selectedFile)) = "" Then
+        Dim inputPath As String
+        inputPath = InputBox("Ange full sökväg till Excel-filen (kopiera sökvägen från Finder och klistra in):", "Ange filväg")
+        If Trim(inputPath) = "" Then Exit Sub
+        selectedFile = inputPath
     End If
 
     filePath = CStr(selectedFile)
