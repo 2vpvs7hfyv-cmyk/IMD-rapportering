@@ -47,10 +47,48 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     End If
 
     filePath = CStr(selectedFile)
+    ImportWorkbookToNewSheetByPath filePath
+End Sub
+
+Public Sub ImportLastWorkbookToNewSheet()
+    If Not TryImportLastWorkbookToNewSheet() Then
+        MsgBox "Ingen tidigare importfil är sparad eller filen kunde inte hittas. Välj en fil att importera.", vbInformation
+        ImportSelectedWorkbookToNewSheet
+    End If
+End Sub
+
+Public Function TryImportLastWorkbookToNewSheet() As Boolean
+    Dim lastPath As String
+    lastPath = GetLastImportedFilePath()
+
+    If Trim$(lastPath) = "" Then Exit Function
+    If Dir(lastPath) = "" Then Exit Function
+
+    ImportWorkbookToNewSheetByPath lastPath
+    TryImportLastWorkbookToNewSheet = True
+End Function
+
+Public Sub ImportWorkbookToNewSheet(ByVal filePath As String)
+    If Trim$(CStr(filePath)) = "" Then
+        MsgBox "Ogiltig filväg.", vbExclamation
+        Exit Sub
+    End If
+
+    ImportWorkbookToNewSheetByPath CStr(filePath)
+End Sub
+
+Private Sub ImportWorkbookToNewSheetByPath(ByVal filePath As String)
+    Dim sourceWorkbook As Workbook
+    Dim sourceSheet As Worksheet
+    Dim newSheet As Worksheet
+    Dim sheetName As String
+
     sheetName = GetSafeSheetName(GetFileNameWithoutExtension(filePath))
 
     On Error GoTo ImportError
     Set sourceWorkbook = Workbooks.Open(filePath, UpdateLinks:=False, ReadOnly:=True)
+
+    SaveLastImportedFilePath filePath
 
     If sourceWorkbook.Worksheets.Count < 1 Then
         MsgBox "Källarbetsboken innehåller inga blad.", vbExclamation
@@ -95,6 +133,31 @@ ImportError:
 
     MsgBox "Det gick inte att importera filen." & vbCrLf & Err.Description, vbExclamation
 End Sub
+
+Private Sub SaveLastImportedFilePath(ByVal filePath As String)
+    On Error Resume Next
+    ThisWorkbook.Names("LastImportedFilePath").Delete
+    On Error GoTo 0
+
+    ThisWorkbook.Names.Add Name:="LastImportedFilePath", RefersTo:="=""" & Replace(filePath, """", """""") & """"
+End Sub
+
+Private Function GetLastImportedFilePath() As String
+    On Error Resume Next
+    GetLastImportedFilePath = ThisWorkbook.Names("LastImportedFilePath").RefersTo
+    If Err.Number <> 0 Then
+        Err.Clear
+        GetLastImportedFilePath = ""
+    Else
+        If Left$(GetLastImportedFilePath, 1) = "=" Then
+            GetLastImportedFilePath = Mid$(GetLastImportedFilePath, 2)
+        End If
+        If Left$(GetLastImportedFilePath, 1) = """" Then
+            GetLastImportedFilePath = Mid$(GetLastImportedFilePath, 2, Len(GetLastImportedFilePath) - 2)
+        End If
+    End If
+    On Error GoTo 0
+End Function
 
 Private Function GetOrCreateWorksheet(ByVal sheetName As String) As Worksheet
     On Error Resume Next
