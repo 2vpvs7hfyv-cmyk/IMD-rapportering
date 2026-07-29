@@ -40,7 +40,6 @@ Public Sub AppendIMDRow(ByVal department As String, ByVal account As String, ByV
 End Sub
 
 Public Sub ImportSelectedWorkbookToNewSheet()
-    Dim fd As FileDialog
     Dim selectedFile As Variant
     Dim sourceWorkbook As Workbook
     Dim sourceSheet As Worksheet
@@ -48,29 +47,26 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     Dim sheetName As String
     Dim filePath As String
 
-    Set fd = Application.FileDialog(msoFileDialogFilePicker)
+    ' Use GetOpenFilename for compatibility on macOS
+    selectedFile = Application.GetOpenFilename("Excel Files (*.xlsx;*.xlsm;*.xls), *.xlsx;*.xlsm;*.xls", , "Välj Excel-fil att importera")
 
-    With fd
-        .Title = "Välj Excel-fil att importera"
-        .AllowMultiSelect = False
-        .Filters.Clear
-        .Filters.Add "Excel-filer", "*.xlsx; *.xlsm; *.xls", 1
-        .Filters.Add "Alla filer", "*.*", 2
-
-        If .Show = -1 Then
-            selectedFile = .SelectedItems(1)
-        Else
-            Exit Sub
-        End If
-    End With
-
-    If IsEmpty(selectedFile) Then Exit Sub
+    ' If user cancelled, GetOpenFilename returns False (vbBoolean)
+    If VarType(selectedFile) = vbBoolean Then
+        Exit Sub
+    End If
 
     filePath = CStr(selectedFile)
     sheetName = GetSafeSheetName(GetFileNameWithoutExtension(filePath))
 
     On Error GoTo ImportError
     Set sourceWorkbook = Workbooks.Open(filePath, UpdateLinks:=False, ReadOnly:=True)
+
+    If sourceWorkbook.Worksheets.Count < 1 Then
+        MsgBox "Källarbetsboken innehåller inga blad.", vbExclamation
+        sourceWorkbook.Close SaveChanges:=False
+        Exit Sub
+    End If
+
     Set sourceSheet = sourceWorkbook.Worksheets(1)
 
     Set newSheet = GetOrCreateWorksheet(sheetName)
