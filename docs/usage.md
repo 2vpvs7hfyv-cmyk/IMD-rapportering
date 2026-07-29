@@ -2,9 +2,8 @@
 
 1. Öppna arbetsboken i Excel på Mac.
 2. Gå till VBA-editorn och importera filen `vba/IMDReporting.bas`.
-3. Kör makrot `InitializeIMDReport` för att skapa rapportbladet.
-4. Kör makrot `ImportSelectedWorkbookToNewSheet` för att välja en Excel-fil från Finder.
-5. Innehållet från den valda filen kopieras till ett nytt blad med samma namn som filen.
+3. Kör makrot `ImportSelectedWorkbookToNewSheet` för att välja en Excel-fil från Finder.
+4. Innehållet från den valda filen kopieras till ett nytt blad med samma namn som filen.
 
 Exempel:
 
