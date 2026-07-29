@@ -1,6 +1,6 @@
 Option Explicit
 
-Public Sub CreateExportSheet(ByVal sourceSheet As Worksheet)
+Public Function CreateExportSheet(ByVal sourceSheet As Worksheet) As Long
     Dim exportSheet As Worksheet
     Dim sourceLastRow As Long
     Dim sourceRow As Long
@@ -18,7 +18,8 @@ Public Sub CreateExportSheet(ByVal sourceSheet As Worksheet)
     Dim exportValueI As String
     Dim exportedCount As Long
 
-    If sourceSheet Is Nothing Then Exit Sub
+    CreateExportSheet = 0
+    If sourceSheet Is Nothing Then Exit Function
 
     On Error Resume Next
     Application.DisplayAlerts = False
@@ -74,8 +75,8 @@ Public Sub CreateExportSheet(ByVal sourceSheet As Worksheet)
         exportedCount = exportedCount + 1
     Next sourceRow
 
-    MsgBox "Export klar. " & exportedCount & " Elmätare exporterade.", vbInformation, "Export klar"
-End Sub
+    CreateExportSheet = exportedCount
+End Function
 
 Private Function ExtractLast4Digits(ByVal inputText As String) As String
     Dim digits As String

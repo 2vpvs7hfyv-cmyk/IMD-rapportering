@@ -115,9 +115,10 @@ Private Sub ImportWorkbookToNewSheetByPath(ByVal filePath As String)
     sourceSheet.UsedRange.Copy Destination:=newSheet.Range("A1")
 
     If AllValidationsPass(newSheet) Then
-        CreateExportSheet newSheet
+        Dim exportedCount As Long
+        exportedCount = CreateExportSheet(newSheet)
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Exportbladet har skapats.", vbInformation
+        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Exportbladet har skapats med " & exportedCount & " elmätare.", vbInformation
     Else
         sourceWorkbook.Close SaveChanges:=False
         MsgBox "Importen genomfördes, men exporten stoppades eftersom verifieringarna inte gick igenom.", vbExclamation
