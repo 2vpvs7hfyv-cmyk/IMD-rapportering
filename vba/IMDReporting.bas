@@ -76,6 +76,8 @@ Public Sub ImportSelectedWorkbookToNewSheet()
 
     sourceSheet.UsedRange.Copy Destination:=newSheet.Range("A1")
 
+    Call VerifyConsumptionZero(newSheet)
+
     sourceWorkbook.Close SaveChanges:=False
 
     MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName, vbInformation
