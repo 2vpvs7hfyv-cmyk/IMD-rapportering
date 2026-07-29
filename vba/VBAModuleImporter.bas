@@ -49,7 +49,7 @@ End Sub
 
 Private Function GetModuleNameFromBasPath(ByVal filePath As String) As String
     Dim fileName As String
-    fileName = Dir(filePath)
+    fileName = Mid$(filePath, InStrRev(filePath, Application.PathSeparator) + 1)
     If InStrRev(fileName, ".") > 0 Then
         GetModuleNameFromBasPath = Left$(fileName, InStrRev(fileName, ".") - 1)
     Else
