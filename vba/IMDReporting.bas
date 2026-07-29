@@ -60,8 +60,20 @@ Public Sub ImportSelectedWorkbookToNewSheet()
 
     Set sourceSheet = sourceWorkbook.Worksheets(1)
 
-    Set newSheet = GetOrCreateWorksheet(sheetName)
-    newSheet.Cells.Clear
+    If SheetExists(sheetName) Then
+        Dim overwriteResponse As VbMsgBoxResult
+        overwriteResponse = MsgBox("Bladet '" & sheetName & "' finns redan. Vill du skriva över det?", vbYesNo + vbQuestion, "Skriv över befintligt blad?")
+        If overwriteResponse = vbNo Then
+            sourceWorkbook.Close SaveChanges:=False
+            Exit Sub
+        End If
+        Set newSheet = ThisWorkbook.Worksheets(sheetName)
+        newSheet.Cells.Clear
+    Else
+        Set newSheet = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.Count))
+        newSheet.Name = sheetName
+    End If
+
     sourceSheet.UsedRange.Copy Destination:=newSheet.Range("A1")
 
     sourceWorkbook.Close SaveChanges:=False
