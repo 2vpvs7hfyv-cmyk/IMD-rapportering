@@ -25,9 +25,20 @@ Public Sub UpdateVbaModulesFromFolderButton()
 End Sub
 
 Private Sub ImportBasModule(ByVal filePath As String)
+    Dim moduleName As String
+    Dim existingComp As Object
     Dim vbComp As Object
 
+    moduleName = GetModuleNameFromBasPath(filePath)
+
     On Error Resume Next
+    Set existingComp = ThisWorkbook.VBProject.VBComponents(moduleName)
+    If Not existingComp Is Nothing Then
+        ThisWorkbook.VBProject.VBComponents.Remove existingComp
+        Set existingComp = Nothing
+    End If
+    Err.Clear
+
     Set vbComp = ThisWorkbook.VBProject.VBComponents.Import(filePath)
     If Err.Number <> 0 Then
         Err.Clear
@@ -35,6 +46,16 @@ Private Sub ImportBasModule(ByVal filePath As String)
     End If
     On Error GoTo 0
 End Sub
+
+Private Function GetModuleNameFromBasPath(ByVal filePath As String) As String
+    Dim fileName As String
+    fileName = Dir(filePath)
+    If InStrRev(fileName, ".") > 0 Then
+        GetModuleNameFromBasPath = Left$(fileName, InStrRev(fileName, ".") - 1)
+    Else
+        GetModuleNameFromBasPath = fileName
+    End If
+End Function
 
 Private Function GetWorkbookFolderPath() As String
     If ThisWorkbook.Path = "" Then
