@@ -115,13 +115,15 @@ Private Sub ImportWorkbookToNewSheetByPath(ByVal filePath As String)
     sourceSheet.UsedRange.Copy Destination:=newSheet.Range("A1")
 
     If AllValidationsPass(newSheet) Then
-        Dim exportedCount As Long
-        exportedCount = CreateExportSheet(newSheet)
+        SaveLastImportedSheetName sheetName
+        SaveLastImportValidationStatus True
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Exportbladet har skapats med " & exportedCount & " elmätare.", vbInformation
+        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Valideringen lyckades. Kör export separat med exportknappen.", vbInformation
     Else
+        SaveLastImportedSheetName sheetName
+        SaveLastImportValidationStatus False
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Importen genomfördes, men exporten stoppades eftersom verifieringarna inte gick igenom.", vbExclamation
+        MsgBox "Importen genomfördes, men verifieringarna misslyckades. Export körs inte.", vbExclamation
     End If
 
     Exit Sub
@@ -159,6 +161,84 @@ Private Function GetLastImportedFilePath() As String
     End If
     On Error GoTo 0
 End Function
+
+Private Sub SaveLastImportedSheetName(ByVal sheetName As String)
+    On Error Resume Next
+    ThisWorkbook.Names("LastImportedSheetName").Delete
+    On Error GoTo 0
+
+    ThisWorkbook.Names.Add Name:="LastImportedSheetName", RefersTo:="=""" & Replace(sheetName, """", """""") & """"
+End Sub
+
+Private Function GetLastImportedSheetName() As String
+    On Error Resume Next
+    GetLastImportedSheetName = ThisWorkbook.Names("LastImportedSheetName").RefersTo
+    If Err.Number <> 0 Then
+        Err.Clear
+        GetLastImportedSheetName = ""
+    Else
+        If Left$(GetLastImportedSheetName, 1) = "=" Then
+            GetLastImportedSheetName = Mid$(GetLastImportedSheetName, 2)
+        End If
+        If Left$(GetLastImportedSheetName, 1) = """" Then
+            GetLastImportedSheetName = Mid$(GetLastImportedSheetName, 2, Len(GetLastImportedSheetName) - 2)
+        End If
+    End If
+    On Error GoTo 0
+End Function
+
+Private Sub SaveLastImportValidationStatus(ByVal status As Boolean)
+    On Error Resume Next
+    ThisWorkbook.Names("LastImportValidated").Delete
+    On Error GoTo 0
+
+    ThisWorkbook.Names.Add Name:="LastImportValidated", RefersTo:="=" & IIf(status, "TRUE", "FALSE")
+End Sub
+
+Private Function GetLastImportValidationStatus() As Boolean
+    Dim rawValue As String
+    On Error Resume Next
+    rawValue = ThisWorkbook.Names("LastImportValidated").RefersTo
+    If Err.Number <> 0 Then
+        Err.Clear
+        GetLastImportValidationStatus = False
+    Else
+        If Left$(rawValue, 1) = "=" Then rawValue = Mid$(rawValue, 2)
+        rawValue = UCase$(Trim$(rawValue))
+        GetLastImportValidationStatus = (rawValue = "TRUE")
+    End If
+    On Error GoTo 0
+End Function
+
+Public Sub ExportLastImportedSheet()
+    Dim sheetName As String
+    Dim exportSheet As Worksheet
+    Dim exportedCount As Long
+
+    sheetName = GetLastImportedSheetName()
+    If Trim$(sheetName) = "" Then
+        MsgBox "Ingen importerad fil hittades att exportera. Kör importen först.", vbExclamation
+        Exit Sub
+    End If
+
+    If Not GetLastImportValidationStatus() Then
+        MsgBox "Senaste importen har inte validerats eller valideringen misslyckades. Kör importen igen och se till att den godkänns innan export.", vbExclamation
+        Exit Sub
+    End If
+
+    If Not SheetExists(sheetName) Then
+        MsgBox "Det importerade bladet '" & sheetName & "' finns inte. Kör importen igen.", vbExclamation
+        Exit Sub
+    End If
+
+    Set exportSheet = ThisWorkbook.Worksheets(sheetName)
+    exportedCount = CreateExportSheet(exportSheet)
+    If exportedCount > 0 Then
+        MsgBox "Export klar. Innehållet från bladet '" & sheetName & "' exporterades till bladet Export." & vbCrLf & "Antal elmätare: " & exportedCount, vbInformation
+    Else
+        MsgBox "Exporten kördes, men inga rader kunde exporteras.", vbExclamation
+    End If
+End Sub
 
 Private Function GetOrCreateWorksheet(ByVal sheetName As String) As Worksheet
     On Error Resume Next
