@@ -8,6 +8,8 @@ Public Sub ImportBasModulesFromWorkbookFolder()
     wbFolder = GetWorkbookFolderPath()
     If wbFolder = "" Then Exit Sub
 
+    RemoveAllStandardModules
+
     basFile = Dir(wbFolder & "*.bas")
     Do While basFile <> ""
         ImportBasModule wbFolder & basFile
@@ -18,6 +20,24 @@ Public Sub ImportBasModulesFromWorkbookFolder()
     If importCount > 0 Then
         MsgBox CStr(importCount) & " .bas-modul(er) importerades från mappen: " & wbFolder, vbInformation
     End If
+End Sub
+
+Private Sub RemoveAllStandardModules()
+    Dim comp As Object
+    Dim moduleNames As Collection
+    Dim i As Long
+
+    Set moduleNames = New Collection
+
+    For Each comp In ThisWorkbook.VBProject.VBComponents
+        If comp.Type = 1 Then
+            moduleNames.Add comp.Name
+        End If
+    Next comp
+
+    For i = 1 To moduleNames.Count
+        ThisWorkbook.VBProject.VBComponents.Remove ThisWorkbook.VBProject.VBComponents(moduleNames(i))
+    Next i
 End Sub
 
 Public Sub UpdateVbaModulesFromFolderButton()
