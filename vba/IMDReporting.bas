@@ -48,11 +48,30 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     Dim filePath As String
 
     ' Use GetOpenFilename for compatibility on macOS
-    selectedFile = Application.GetOpenFilename("Excel Files (*.xlsx;*.xlsm;*.xls), *.xlsx;*.xlsm;*.xls", , "Välj Excel-fil att importera")
+    Dim pickFailed As Boolean
+    pickFailed = False
 
-    ' If user cancelled, GetOpenFilename returns False (vbBoolean)
-    If VarType(selectedFile) = vbBoolean Then
-        Exit Sub
+    On Error Resume Next
+    selectedFile = Application.GetOpenFilename("Excel Files (*.xlsx;*.xlsm;*.xls), *.xlsx;*.xlsm;*.xls", , "Välj Excel-fil att importera")
+    If Err.Number <> 0 Then
+        pickFailed = True
+        Err.Clear
+    End If
+    On Error GoTo 0
+
+    ' If GetOpenFilename returned False or failed, try AppleScript fallback on Mac
+    If VarType(selectedFile) = vbBoolean Or pickFailed Then
+        On Error Resume Next
+        Dim asPath As String
+        asPath = MacScript("POSIX path of (choose file of type {\"xlsx\",\"xlsm\",\"xls\"} with prompt \"Välj Excel-fil att importera\")")
+        If Err.Number <> 0 Then
+            Err.Clear
+        Else
+            If Len(Trim$(asPath)) > 0 Then
+                selectedFile = asPath
+            End If
+        End If
+        On Error GoTo 0
     End If
 
     filePath = CStr(selectedFile)
