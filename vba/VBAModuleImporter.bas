@@ -25,7 +25,7 @@ Public Sub UpdateVbaModulesFromFolderButton()
 End Sub
 
 Private Sub ImportBasModule(ByVal filePath As String)
-    Dim vbComp As VBIDE.VBComponent
+    Dim vbComp As Object
 
     On Error Resume Next
     Set vbComp = ThisWorkbook.VBProject.VBComponents.Import(filePath)
