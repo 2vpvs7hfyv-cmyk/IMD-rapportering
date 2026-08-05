@@ -1,6 +1,37 @@
 Option Explicit
 
-Public Function CreateExportSheet(ByVal sourceSheet As Worksheet) As Long
+Public Sub BuildExportSheet()
+    Dim sheetName As String
+    Dim exportSheet As Worksheet
+    Dim exportedCount As Long
+
+    sheetName = GetLastImportedSheetName()
+    If Trim$(sheetName) = "" Then
+        MsgBox "Ingen importerad fil hittades att exportera. Kšr importen fšrst.", vbExclamation
+        Exit Sub
+    End If
+
+    If Not GetLastImportValidationStatus() Then
+        MsgBox "Senaste importen har inte validerats eller valideringen misslyckades. Kšr importen igen och se till att den godkŠnns innan export.", vbExclamation
+        Exit Sub
+    End If
+
+    If Not SheetExists(sheetName) Then
+        MsgBox "Det importerade bladet '" & sheetName & "' finns inte. Kšr importen igen.", vbExclamation
+        Exit Sub
+    End If
+
+    Set exportSheet = ThisWorkbook.Worksheets(sheetName)
+    exportedCount = TransformDataToExportFormat(exportSheet)
+    If exportedCount > 0 Then
+        MsgBox "Export klar. InnehŒllet frŒn bladet '" & sheetName & "' exporterades till bladet Export." & vbCrLf & "Antal elmŠtare: " & exportedCount, vbInformation
+    Else
+        MsgBox "Exporten kšrdes, men inga rader kunde exporteras.", vbExclamation
+    End If
+End Sub
+
+
+Public Function TransformDataToExportFormat(ByVal sourceSheet As Worksheet) As Long
     Dim exportSheet As Worksheet
     Dim sourceLastRow As Long
     Dim sourceRow As Long
@@ -18,7 +49,7 @@ Public Function CreateExportSheet(ByVal sourceSheet As Worksheet) As Long
     Dim exportValueI As String
     Dim exportedCount As Long
 
-    CreateExportSheet = 0
+    TransformDataToExportFormat = 0
     If sourceSheet Is Nothing Then Exit Function
 
     On Error Resume Next
@@ -75,7 +106,7 @@ Public Function CreateExportSheet(ByVal sourceSheet As Worksheet) As Long
         exportedCount = exportedCount + 1
     Next sourceRow
 
-    CreateExportSheet = exportedCount
+    TransformDataToExportFormat = exportedCount
 End Function
 
 Private Function ExtractLast4Digits(ByVal inputText As String) As String
@@ -171,7 +202,7 @@ Private Function FormatDateToText(ByVal sourceValue As Variant) As String
     FormatDateToText = result
 End Function
 
-Public Sub ExportExportSheetToCSV()
+Public Sub SaveExportSheetAsCSV()
     Dim exportSheet As Worksheet
     Dim filePath As String
     Dim fileNumber As Integer
@@ -191,19 +222,19 @@ Public Sub ExportExportSheetToCSV()
     On Error GoTo ErrorHandler
 
     If exportSheet Is Nothing Then
-        MsgBox "Export-bladet finns inte. Kšr fšrst en import och validering.", vbExclamation, "Fel"
+        MsgBox "Export-bladet finns inte. Kï¿½r fï¿½rst en import och validering.", vbExclamation, "Fel"
         Exit Sub
     End If
 
     lastRow = exportSheet.Cells(exportSheet.Rows.Count, 3).End(xlUp).Row
     If lastRow < 2 Then
-        MsgBox "Export-bladet Šr tomt.", vbInformation, "Ingen data"
+        MsgBox "Export-bladet ï¿½r tomt.", vbInformation, "Ingen data"
         Exit Sub
     End If
 
     wbFolder = GetWorkbookFolderPath()
     If wbFolder = "" Then
-        MsgBox "Kunde inte avgšra arbetsbokens mapp.", vbExclamation, "Fel"
+        MsgBox "Kunde inte avgï¿½ra arbetsbokens mapp.", vbExclamation, "Fel"
         Exit Sub
     End If
 
@@ -235,3 +266,11 @@ ErrorHandler:
     End If
     MsgBox "Fel vid export: " & Err.Description, vbExclamation, "Exportfel"
 End Sub
+
+Public Function GetWorkbookFolderPath() As String
+    If ThisWorkbook.Path = "" Then
+        GetWorkbookFolderPath = CurDir()
+    Else
+        GetWorkbookFolderPath = ThisWorkbook.Path & Application.PathSeparator
+    End If
+End Function

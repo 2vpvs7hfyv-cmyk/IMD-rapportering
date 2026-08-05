@@ -1,6 +1,6 @@
 Option Explicit
 
-Public Sub ImportBasModulesFromWorkbookFolder()
+Public Sub ReloadVbaModules()
     Dim wbFolder As String
     Dim basFile As String
     Dim importCount As Long
@@ -39,11 +39,6 @@ Private Sub RemoveAllStandardModules()
         ThisWorkbook.VBProject.VBComponents.Remove ThisWorkbook.VBProject.VBComponents(moduleNames(i))
     Next i
 End Sub
-
-Public Sub UpdateVbaModulesFromFolderButton()
-    ImportBasModulesFromWorkbookFolder
-End Sub
-
 Private Sub ImportBasModule(ByVal filePath As String)
     Dim moduleName As String
     Dim existingComp As Object
@@ -91,13 +86,5 @@ Private Function GetModuleNameFromBasPath(ByVal filePath As String) As String
         GetModuleNameFromBasPath = Left$(fileName, InStrRev(fileName, ".") - 1)
     Else
         GetModuleNameFromBasPath = fileName
-    End If
-End Function
-
-Public Function GetWorkbookFolderPath() As String
-    If ThisWorkbook.Path = "" Then
-        GetWorkbookFolderPath = CurDir()
-    Else
-        GetWorkbookFolderPath = ThisWorkbook.Path & Application.PathSeparator
     End If
 End Function

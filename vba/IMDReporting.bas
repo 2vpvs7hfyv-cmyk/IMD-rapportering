@@ -47,7 +47,7 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     End If
 
     filePath = CStr(selectedFile)
-    ImportWorkbookToNewSheetByPath filePath
+    ImportWorkbook filePath
 End Sub
 
 Public Sub ImportLastWorkbookToNewSheet()
@@ -64,7 +64,7 @@ Public Function TryImportLastWorkbookToNewSheet() As Boolean
     If Trim$(lastPath) = "" Then Exit Function
     If Dir(lastPath) = "" Then Exit Function
 
-    ImportWorkbookToNewSheetByPath lastPath
+    ImportWorkbook lastPath
     TryImportLastWorkbookToNewSheet = True
 End Function
 
@@ -74,10 +74,10 @@ Public Sub ImportWorkbookToNewSheet(ByVal filePath As String)
         Exit Sub
     End If
 
-    ImportWorkbookToNewSheetByPath CStr(filePath)
+    ImportWorkbook CStr(filePath)
 End Sub
 
-Private Sub ImportWorkbookToNewSheetByPath(ByVal filePath As String)
+Private Sub ImportWorkbook(ByVal filePath As String)
     Dim sourceWorkbook As Workbook
     Dim sourceSheet As Worksheet
     Dim newSheet As Worksheet
@@ -170,7 +170,7 @@ Private Sub SaveLastImportedSheetName(ByVal sheetName As String)
     ThisWorkbook.Names.Add Name:="LastImportedSheetName", RefersTo:="=""" & Replace(sheetName, """", """""") & """"
 End Sub
 
-Private Function GetLastImportedSheetName() As String
+Public Function GetLastImportedSheetName() As String
     On Error Resume Next
     GetLastImportedSheetName = ThisWorkbook.Names("LastImportedSheetName").RefersTo
     If Err.Number <> 0 Then
@@ -195,7 +195,7 @@ Private Sub SaveLastImportValidationStatus(ByVal status As Boolean)
     ThisWorkbook.Names.Add Name:="LastImportValidated", RefersTo:="=" & IIf(status, "TRUE", "FALSE")
 End Sub
 
-Private Function GetLastImportValidationStatus() As Boolean
+Public Function GetLastImportValidationStatus() As Boolean
     Dim rawValue As String
     On Error Resume Next
     rawValue = ThisWorkbook.Names("LastImportValidated").RefersTo
@@ -209,37 +209,6 @@ Private Function GetLastImportValidationStatus() As Boolean
     End If
     On Error GoTo 0
 End Function
-
-Public Sub ExportLastImportedSheet()
-    Dim sheetName As String
-    Dim exportSheet As Worksheet
-    Dim exportedCount As Long
-
-    sheetName = GetLastImportedSheetName()
-    If Trim$(sheetName) = "" Then
-        MsgBox "Ingen importerad fil hittades att exportera. Kör importen först.", vbExclamation
-        Exit Sub
-    End If
-
-    If Not GetLastImportValidationStatus() Then
-        MsgBox "Senaste importen har inte validerats eller valideringen misslyckades. Kör importen igen och se till att den godkänns innan export.", vbExclamation
-        Exit Sub
-    End If
-
-    If Not SheetExists(sheetName) Then
-        MsgBox "Det importerade bladet '" & sheetName & "' finns inte. Kör importen igen.", vbExclamation
-        Exit Sub
-    End If
-
-    Set exportSheet = ThisWorkbook.Worksheets(sheetName)
-    exportedCount = CreateExportSheet(exportSheet)
-    If exportedCount > 0 Then
-        MsgBox "Export klar. Innehållet från bladet '" & sheetName & "' exporterades till bladet Export." & vbCrLf & "Antal elmätare: " & exportedCount, vbInformation
-    Else
-        MsgBox "Exporten kördes, men inga rader kunde exporteras.", vbExclamation
-    End If
-End Sub
-
 Private Function GetOrCreateWorksheet(ByVal sheetName As String) As Worksheet
     On Error Resume Next
     Set GetOrCreateWorksheet = ThisWorkbook.Worksheets(sheetName)
@@ -292,7 +261,7 @@ Private Function GetFileNameWithoutExtension(ByVal fullPath As String) As String
     End If
 End Function
 
-Private Function SheetExists(ByVal sheetName As String) As Boolean
+Public Function SheetExists(ByVal sheetName As String) As Boolean
     Dim ws As Worksheet
 
     SheetExists = False
