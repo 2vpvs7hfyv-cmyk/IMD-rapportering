@@ -169,3 +169,68 @@ Private Function FormatDateToText(ByVal sourceValue As Variant) As String
 
     FormatDateToText = result
 End Function
+
+Public Sub ExportExportSheetToCSV()
+    Dim exportSheet As Worksheet
+    Dim filePath As String
+    Dim fileNumber As Integer
+    Dim lastRow As Long
+    Dim currentRow As Long
+    Dim lastCol As Long
+    Dim currentCol As Long
+    Dim csvLine As String
+    Dim cellValue As String
+    Dim wbFolder As String
+
+    On Error GoTo ErrorHandler
+
+    Set exportSheet = Nothing
+    On Error Resume Next
+    Set exportSheet = ThisWorkbook.Worksheets("Export")
+    On Error GoTo ErrorHandler
+
+    If exportSheet Is Nothing Then
+        MsgBox "Export-bladet finns inte. Kör först en import och validering.", vbExclamation, "Fel"
+        Exit Sub
+    End If
+
+    lastRow = exportSheet.Cells(exportSheet.Rows.Count, 3).End(xlUp).Row
+    If lastRow < 2 Then
+        MsgBox "Export-bladet är tomt.", vbInformation, "Ingen data"
+        Exit Sub
+    End If
+
+    wbFolder = GetWorkbookFolderPath()
+    If wbFolder = "" Then
+        MsgBox "Kunde inte avgöra arbetsbokens mapp.", vbExclamation, "Fel"
+        Exit Sub
+    End If
+
+    filePath = wbFolder & "export_" & Format(Now, "yyyymmdd_hhmmss") & ".txt"
+
+    fileNumber = FreeFile
+    Open filePath For Output As fileNumber
+
+    For currentRow = 1 To lastRow
+        csvLine = ""
+        For currentCol = 1 To 17
+            cellValue = Trim$(CStr(exportSheet.Cells(currentRow, currentCol).Value))
+            If currentCol > 1 Then
+                csvLine = csvLine & ";"
+            End If
+            csvLine = csvLine & cellValue
+        Next currentCol
+        Print #fileNumber, csvLine
+    Next currentRow
+
+    Close fileNumber
+
+    MsgBox "Export-data sparad till:" & vbCrLf & filePath, vbInformation, "Export klar"
+    Exit Sub
+
+ErrorHandler:
+    If fileNumber <> 0 Then
+        Close fileNumber
+    End If
+    MsgBox "Fel vid export: " & Err.Description, vbExclamation, "Exportfel"
+End Sub

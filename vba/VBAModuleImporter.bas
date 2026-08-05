@@ -94,7 +94,7 @@ Private Function GetModuleNameFromBasPath(ByVal filePath As String) As String
     End If
 End Function
 
-Private Function GetWorkbookFolderPath() As String
+Public Function GetWorkbookFolderPath() As String
     If ThisWorkbook.Path = "" Then
         GetWorkbookFolderPath = CurDir()
     Else
