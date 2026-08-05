@@ -20,7 +20,7 @@ Public Function VerifyConsumptionZero(ByVal targetSheet As Worksheet) As Boolean
             If Trim$(CStr(cell.Value)) <> "" Then
                 If Val(cell.Value) = 0 Then
                     On Error Resume Next
-                    cell.Style = "D√•lig"
+                    cell.Style = "Dålig"
                     If Err.Number <> 0 Then
                         Err.Clear
                         cell.Interior.Color = RGB(255, 199, 206)
@@ -33,7 +33,7 @@ Public Function VerifyConsumptionZero(ByVal targetSheet As Worksheet) As Boolean
     Next cell
 
     If badCount > 0 Then
-        MsgBox "Verifiering: Hittade " & badCount & " rader med 0 i f√∂rbrukning i kolumn G. Dessa har markerats.", vbExclamation, "Verifiering - F√∂rbrukning"
+        MsgBox "Verifiering: Hittade " & badCount & " rader med 0 i förbrukning i kolumn G. Dessa har markerats.", vbExclamation, "Verifiering - Förbrukning"
         VerifyConsumptionZero = False
     End If
 End Function

@@ -190,19 +190,19 @@ Public Sub ExportExportSheetToCSV()
     On Error GoTo ErrorHandler
 
     If exportSheet Is Nothing Then
-        MsgBox "Export-bladet finns inte. K√∂r f√∂rst en import och validering.", vbExclamation, "Fel"
+        MsgBox "Export-bladet finns inte. Kör först en import och validering.", vbExclamation, "Fel"
         Exit Sub
     End If
 
     lastRow = exportSheet.Cells(exportSheet.Rows.Count, 3).End(xlUp).Row
     If lastRow < 2 Then
-        MsgBox "Export-bladet √§r tomt.", vbInformation, "Ingen data"
+        MsgBox "Export-bladet är tomt.", vbInformation, "Ingen data"
         Exit Sub
     End If
 
     wbFolder = GetWorkbookFolderPath()
     If wbFolder = "" Then
-        MsgBox "Kunde inte avg√∂ra arbetsbokens mapp.", vbExclamation, "Fel"
+        MsgBox "Kunde inte avgöra arbetsbokens mapp.", vbExclamation, "Fel"
         Exit Sub
     End If
 

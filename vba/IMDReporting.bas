@@ -16,7 +16,7 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     pickFailed = False
 
     On Error Resume Next
-    selectedFile = Application.GetOpenFilename("Excel Files (*.xlsx;*.xlsm;*.xls), *.xlsx;*.xlsm;*.xls", , "VÃ¤lj Excel-fil att importera")
+    selectedFile = Application.GetOpenFilename("Excel Files (*.xlsx;*.xlsm;*.xls), *.xlsx;*.xlsm;*.xls", , "VŠlj Excel-fil att importera")
     If Err.Number <> 0 Then
         pickFailed = True
         Err.Clear
@@ -27,7 +27,7 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     If VarType(selectedFile) = vbBoolean Or pickFailed Then
         On Error Resume Next
         Dim asPath As String
-        asPath = MacScript("POSIX path of (choose file with prompt ""VÃ¤lj Excel-fil att importera"")")
+        asPath = MacScript("POSIX path of (choose file with prompt ""VŠlj Excel-fil att importera"")")
         If Err.Number <> 0 Then
             Err.Clear
         Else
@@ -41,7 +41,7 @@ Public Sub ImportSelectedWorkbookToNewSheet()
     ' If still no file selected, ask the user to paste the full POSIX path
     If VarType(selectedFile) = vbBoolean Or Trim(CStr(selectedFile)) = "" Then
         Dim inputPath As String
-        inputPath = InputBox("Ange full sÃ¶kvÃ¤g till Excel-filen (kopiera sÃ¶kvÃ¤gen frÃ¥n Finder och klistra in):", "Ange filvÃ¤g")
+        inputPath = InputBox("Ange full sškvŠg till Excel-filen (kopiera sškvŠgen frŒn Finder och klistra in):", "Ange filvŠg")
         If Trim(inputPath) = "" Then Exit Sub
         selectedFile = inputPath
     End If
@@ -52,7 +52,7 @@ End Sub
 
 Public Sub ImportLastWorkbookToNewSheet()
     If Not TryImportLastWorkbookToNewSheet() Then
-        MsgBox "Ingen tidigare importfil Ã¤r sparad eller filen kunde inte hittas. VÃ¤lj en fil att importera.", vbInformation
+        MsgBox "Ingen tidigare importfil Šr sparad eller filen kunde inte hittas. VŠlj en fil att importera.", vbInformation
         ImportSelectedWorkbookToNewSheet
     End If
 End Sub
@@ -70,7 +70,7 @@ End Function
 
 Public Sub ImportWorkbookToNewSheet(ByVal filePath As String)
     If Trim$(CStr(filePath)) = "" Then
-        MsgBox "Ogiltig filvÃ¤g.", vbExclamation
+        MsgBox "Ogiltig filvŠg.", vbExclamation
         Exit Sub
     End If
 
@@ -91,7 +91,7 @@ Private Sub ImportWorkbookToNewSheetByPath(ByVal filePath As String)
     SaveLastImportedFilePath filePath
 
     If sourceWorkbook.Worksheets.Count < 1 Then
-        MsgBox "KÃ¤llarbetsboken innehÃ¥ller inga blad.", vbExclamation
+        MsgBox "KŠllarbetsboken innehŒller inga blad.", vbExclamation
         sourceWorkbook.Close SaveChanges:=False
         Exit Sub
     End If
@@ -100,7 +100,7 @@ Private Sub ImportWorkbookToNewSheetByPath(ByVal filePath As String)
 
     If SheetExists(sheetName) Then
         Dim overwriteResponse As VbMsgBoxResult
-        overwriteResponse = MsgBox("Bladet '" & sheetName & "' finns redan. Vill du skriva Ã¶ver det?", vbYesNo + vbQuestion, "Skriv Ã¶ver befintligt blad?")
+        overwriteResponse = MsgBox("Bladet '" & sheetName & "' finns redan. Vill du skriva šver det?", vbYesNo + vbQuestion, "Skriv šver befintligt blad?")
         If overwriteResponse = vbNo Then
             sourceWorkbook.Close SaveChanges:=False
             Exit Sub
@@ -118,12 +118,12 @@ Private Sub ImportWorkbookToNewSheetByPath(ByVal filePath As String)
         SaveLastImportedSheetName sheetName
         SaveLastImportValidationStatus True
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Import klar. InnehÃ¥llet frÃ¥n " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Valideringen lyckades. KÃ¶r export separat med exportknappen.", vbInformation
+        MsgBox "Import klar. InnehŒllet frŒn " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Valideringen lyckades. Kšr export separat med exportknappen.", vbInformation
     Else
         SaveLastImportedSheetName sheetName
         SaveLastImportValidationStatus False
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Importen genomfÃ¶rdes, men verifieringarna misslyckades. Export kÃ¶rs inte.", vbExclamation
+        MsgBox "Importen genomfšrdes, men verifieringarna misslyckades. Export kšrs inte.", vbExclamation
     End If
 
     Exit Sub
@@ -217,26 +217,26 @@ Public Sub ExportLastImportedSheet()
 
     sheetName = GetLastImportedSheetName()
     If Trim$(sheetName) = "" Then
-        MsgBox "Ingen importerad fil hittades att exportera. KÃ¶r importen fÃ¶rst.", vbExclamation
+        MsgBox "Ingen importerad fil hittades att exportera. Kšr importen fšrst.", vbExclamation
         Exit Sub
     End If
 
     If Not GetLastImportValidationStatus() Then
-        MsgBox "Senaste importen har inte validerats eller valideringen misslyckades. KÃ¶r importen igen och se till att den godkÃ¤nns innan export.", vbExclamation
+        MsgBox "Senaste importen har inte validerats eller valideringen misslyckades. Kšr importen igen och se till att den godkŠnns innan export.", vbExclamation
         Exit Sub
     End If
 
     If Not SheetExists(sheetName) Then
-        MsgBox "Det importerade bladet '" & sheetName & "' finns inte. KÃ¶r importen igen.", vbExclamation
+        MsgBox "Det importerade bladet '" & sheetName & "' finns inte. Kšr importen igen.", vbExclamation
         Exit Sub
     End If
 
     Set exportSheet = ThisWorkbook.Worksheets(sheetName)
     exportedCount = CreateExportSheet(exportSheet)
     If exportedCount > 0 Then
-        MsgBox "Export klar. InnehÃ¥llet frÃ¥n bladet '" & sheetName & "' exporterades till bladet Export." & vbCrLf & "Antal elmÃ¤tare: " & exportedCount, vbInformation
+        MsgBox "Export klar. InnehŒllet frŒn bladet '" & sheetName & "' exporterades till bladet Export." & vbCrLf & "Antal elmŠtare: " & exportedCount, vbInformation
     Else
-        MsgBox "Exporten kÃ¶rdes, men inga rader kunde exporteras.", vbExclamation
+        MsgBox "Exporten kšrdes, men inga rader kunde exporteras.", vbExclamation
     End If
 End Sub
 
