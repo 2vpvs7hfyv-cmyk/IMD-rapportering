@@ -114,16 +114,20 @@ Private Sub ImportWorkbook(ByVal filePath As String)
 
     sourceSheet.UsedRange.Copy Destination:=newSheet.Range("A1")
 
-    If AllValidationsPass(newSheet) Then
+    Dim yvyMessage As String
+    Dim yvyPass As Boolean
+    yvyPass = VerifyYearOverYearConsumption(newSheet, yvyMessage)
+
+    If AllValidationsPass(newSheet) And yvyPass Then
         SaveLastImportedSheetName sheetName
         SaveLastImportValidationStatus True
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Valideringen lyckades. Kör export separat med exportknappen.", vbInformation
+        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Valideringen lyckades. Kör export separat med exportknappen." & IIf(yvyMessage <> "", vbCrLf & vbCrLf & yvyMessage, ""), vbInformation
     Else
         SaveLastImportedSheetName sheetName
         SaveLastImportValidationStatus False
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Importen genomfördes, men verifieringarna misslyckades. Export körs inte.", vbExclamation
+        MsgBox "Importen genomfördes, men verifieringarna misslyckades. Export körs inte." & IIf(yvyMessage <> "", vbCrLf & vbCrLf & yvyMessage, ""), vbExclamation
     End If
 
     Exit Sub
