@@ -135,6 +135,7 @@ Private Function FormatDecimalText(ByVal value As Double) As String
 
     formatted = Format(value, "0.############")
     formatted = Replace(formatted, ".", ",")
+    If Right$(formatted, 1) = "," Then formatted = Left$(formatted, Len(formatted) - 1)
     If formatted = "-0" Then formatted = "0"
     FormatDecimalText = formatted
 End Function
