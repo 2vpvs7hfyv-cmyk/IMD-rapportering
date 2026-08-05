@@ -48,6 +48,8 @@ Private Sub ImportBasModule(ByVal filePath As String)
     Dim moduleName As String
     Dim existingComp As Object
     Dim vbComp As Object
+    Dim tempFilePath As String
+    Dim fileSystem As Object
 
     moduleName = GetModuleNameFromBasPath(filePath)
 
@@ -59,13 +61,57 @@ Private Sub ImportBasModule(ByVal filePath As String)
     End If
     Err.Clear
 
-    Set vbComp = ThisWorkbook.VBProject.VBComponents.Import(filePath)
+    ' Convert UTF-8 file to MacRoman temporarily for proper import
+    Set fileSystem = CreateObject("Scripting.FileSystemObject")
+    tempFilePath = fileSystem.GetSpecialFolder(2) & "\import_temp_" & CDbl(Now()) * 100000 & ".bas"
+    
+    If ConvertFileEncoding(filePath, tempFilePath, "UTF-8", "macRoman") Then
+        Set vbComp = ThisWorkbook.VBProject.VBComponents.Import(tempFilePath)
+        On Error Resume Next
+        fileSystem.DeleteFile tempFilePath
+        On Error GoTo 0
+    Else
+        Set vbComp = ThisWorkbook.VBProject.VBComponents.Import(filePath)
+    End If
+    
     If Err.Number <> 0 Then
         Err.Clear
         MsgBox "Kunde inte importera modul: " & filePath, vbExclamation
     End If
     On Error GoTo 0
 End Sub
+
+Private Function ConvertFileEncoding(sourceFile As String, destFile As String, fromEncoding As String, toEncoding As String) As Boolean
+    On Error GoTo ErrorHandler
+    Dim stream As Object
+    Dim content As String
+    
+    Set stream = CreateObject("ADODB.Stream")
+    
+    ' Read as UTF-8
+    With stream
+        .Charset = "utf-8"
+        .Open
+        .LoadFromFile sourceFile
+        content = .ReadText()
+        .Close
+    End With
+    
+    ' Write as MacRoman
+    With stream
+        .Charset = "macRoman"
+        .Open
+        .WriteText content
+        .SaveToFile destFile, 2
+        .Close
+    End With
+    
+    ConvertFileEncoding = True
+    Exit Function
+    
+ErrorHandler:
+    ConvertFileEncoding = False
+End Function
 
 Private Function GetModuleNameFromBasPath(ByVal filePath As String) As String
     Dim fileName As String
