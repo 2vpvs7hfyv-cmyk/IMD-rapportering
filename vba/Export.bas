@@ -28,6 +28,8 @@ Public Sub BuildExportSheet()
     Else
         MsgBox "Exporten kšrdes, men inga rader kunde exporteras.", vbExclamation
     End If
+
+    ThisWorkbook.Worksheets(1).Activate
 End Sub
 
 
