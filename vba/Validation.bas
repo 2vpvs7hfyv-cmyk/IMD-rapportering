@@ -178,7 +178,7 @@ Public Function VerifyYearOverYearConsumption(ByVal targetSheet As Worksheet, By
     Next row
 
     If diffCount > 0 Then
-        statusMessage = "Årsjämförelse (" & prevSheet.Name & "): " & diffCount & " mätare avviker mer än " & threshold & " kWh från föregående år."
+        statusMessage = "Årsjämförelse (" & prevSheet.Name & "): " & diffCount & " mätare avviker mer än " & threshold & " kWh från föregående år. Avvikelserna är markerade med rött i bladet."
         VerifyYearOverYearConsumption = False
     Else
         statusMessage = "Årsjämförelse (" & prevSheet.Name & "): Alla mätare inom acceptabel variation (tröskel: " & threshold & " kWh)."
