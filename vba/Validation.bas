@@ -184,3 +184,113 @@ Public Function VerifyYearOverYearConsumption(ByVal targetSheet As Worksheet, By
         statusMessage = "Årsjämförelse (" & prevSheet.Name & "): Alla mätare inom acceptabel variation (tröskel: " & threshold & " kWh)."
     End If
 End Function
+Private Function GetMonthOverMonthThreshold() As Double
+    On Error Resume Next
+    Dim val As Variant
+    val = ThisWorkbook.Names("Månadsförbrukningströskel").RefersToRange.Value
+    If Err.Number = 0 Then
+        On Error GoTo 0
+        If IsNumeric(val) And Trim$(CStr(val)) <> "" Then
+            GetMonthOverMonthThreshold = CDbl(val)
+        Else
+            GetMonthOverMonthThreshold = 0
+        End If
+        Exit Function
+    End If
+    Err.Clear
+    On Error GoTo 0
+    GetMonthOverMonthThreshold = 0
+End Function
+
+Private Function GetPreviousMonthSuffix(ByVal currentSuffix As String) As String
+    If Len(currentSuffix) <> 4 Then Exit Function
+    If Not IsNumeric(currentSuffix) Then Exit Function
+    Dim yy As Integer
+    Dim mm As Integer
+    yy = CInt(Left$(currentSuffix, 2))
+    mm = CInt(Right$(currentSuffix, 2))
+    If mm = 1 Then
+        yy = yy - 1
+        mm = 12
+    Else
+        mm = mm - 1
+    End If
+    GetPreviousMonthSuffix = Format(yy, "00") & Format(mm, "00")
+End Function
+
+Public Function VerifyMonthOverMonthConsumption(ByVal targetSheet As Worksheet, ByRef statusMessage As String) As Boolean
+    VerifyMonthOverMonthConsumption = True
+    statusMessage = ""
+
+    If targetSheet Is Nothing Then Exit Function
+
+    Dim currentSuffix As String
+    Dim prevSuffix As String
+    Dim prevSheet As Worksheet
+    Dim threshold As Double
+    Dim lastRow As Long
+    Dim prevLastRow As Long
+    Dim row As Long
+    Dim searchRow As Long
+    Dim diffCount As Long
+    Dim meterID As String
+    Dim currentConsumption As Double
+    Dim prevRow As Long
+    Dim prevConsumption As Double
+
+    If Len(targetSheet.Name) >= 4 Then
+        currentSuffix = Right$(targetSheet.Name, 4)
+    End If
+
+    If Not IsNumeric(currentSuffix) Then
+        statusMessage = "Månadsjämförelse: Bladnamnet slutar inte med YYMM - jämförelse hoppades över."
+        Exit Function
+    End If
+
+    prevSuffix = GetPreviousMonthSuffix(currentSuffix)
+
+    Set prevSheet = FindSheetBySuffix(prevSuffix)
+    If prevSheet Is Nothing Then
+        statusMessage = "Månadsjämförelse: Inget blad med suffix " & prevSuffix & " hittades - jämförelse hoppades över."
+        Exit Function
+    End If
+
+    threshold = GetMonthOverMonthThreshold()
+    diffCount = 0
+    lastRow = targetSheet.Cells(targetSheet.Rows.Count, "A").End(xlUp).Row
+    prevLastRow = prevSheet.Cells(prevSheet.Rows.Count, "A").End(xlUp).Row
+
+    For row = 2 To lastRow
+        meterID = Trim$(CStr(targetSheet.Cells(row, "A").Value))
+        If meterID <> "" Then
+            currentConsumption = ParseConsumptionValue(targetSheet.Cells(row, "G").Value)
+            prevRow = 0
+            For searchRow = 2 To prevLastRow
+                If Trim$(CStr(prevSheet.Cells(searchRow, "A").Value)) = meterID Then
+                    prevRow = searchRow
+                    Exit For
+                End If
+            Next searchRow
+            If prevRow > 0 Then
+                prevConsumption = ParseConsumptionValue(prevSheet.Cells(prevRow, "G").Value)
+                If Abs(currentConsumption - prevConsumption) > threshold Then
+                    On Error Resume Next
+                    targetSheet.Cells(row, "G").Style = "Dålig"
+                    If Err.Number <> 0 Then
+                        Err.Clear
+                        targetSheet.Cells(row, "G").Interior.Color = RGB(255, 199, 206)
+                    End If
+                    On Error GoTo 0
+                    diffCount = diffCount + 1
+                End If
+            End If
+        End If
+    Next row
+
+    If diffCount > 0 Then
+        statusMessage = "Månadsjämförelse (" & prevSheet.Name & "): " & diffCount & " mätare avviker mer än " & threshold & " kWh från föregående månad. Avvikelserna är markerade med rött i bladet."
+        VerifyMonthOverMonthConsumption = False
+    Else
+        statusMessage = "Månadsjämförelse (" & prevSheet.Name & "): Alla mätare inom acceptabel variation (tröskel: " & threshold & " kWh)."
+    End If
+End Function

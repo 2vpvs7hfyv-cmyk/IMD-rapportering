@@ -118,16 +118,25 @@ Private Sub ImportWorkbook(ByVal filePath As String)
     Dim yvyPass As Boolean
     yvyPass = VerifyYearOverYearConsumption(newSheet, yvyMessage)
 
-    If AllValidationsPass(newSheet) And yvyPass Then
+    Dim momMessage As String
+    Dim momPass As Boolean
+    momPass = VerifyMonthOverMonthConsumption(newSheet, momMessage)
+
+    Dim extraMessages As String
+    extraMessages = ""
+    If yvyMessage <> "" Then extraMessages = extraMessages & vbCrLf & vbCrLf & yvyMessage
+    If momMessage <> "" Then extraMessages = extraMessages & vbCrLf & vbCrLf & momMessage
+
+    If AllValidationsPass(newSheet) And yvyPass And momPass Then
         SaveLastImportedSheetName sheetName
         SaveLastImportValidationStatus True
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Valideringen lyckades. Kör export separat med exportknappen." & IIf(yvyMessage <> "", vbCrLf & vbCrLf & yvyMessage, ""), vbInformation
+        MsgBox "Import klar. Innehållet från " & filePath & vbCrLf & "lades till i bladet " & sheetName & ". Valideringen lyckades. Kör export separat med exportknappen." & extraMessages, vbInformation
     Else
         SaveLastImportedSheetName sheetName
         SaveLastImportValidationStatus False
         sourceWorkbook.Close SaveChanges:=False
-        MsgBox "Importen genomfördes, men verifieringarna misslyckades. Export körs inte." & IIf(yvyMessage <> "", vbCrLf & vbCrLf & yvyMessage, ""), vbExclamation
+        MsgBox "Importen genomfördes, men verifieringarna misslyckades. Export körs inte." & extraMessages, vbExclamation
     End If
 
     Exit Sub
